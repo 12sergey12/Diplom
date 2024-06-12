@@ -38,11 +38,25 @@
 Предварительная подготовка к установке и запуску Kubernetes кластера.
 
 1. Создайте сервисный аккаунт, который будет в дальнейшем использоваться Terraform для работы с инфраструктурой с необходимыми и достаточными правами. Не стоит использовать права суперпользователя
+
+![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/%D0%BE%D0%B1%D1%89%D0%B8%D0%B9%20%D0%B2%D0%B8%D0%B4.yc.png)
+
 2. Подготовьте [backend](https://www.terraform.io/docs/language/settings/backends/index.html) для Terraform:  
    а. Рекомендуемый вариант: S3 bucket в созданном ЯО аккаунте(создание бакета через TF)
    б. Альтернативный вариант:  [Terraform Cloud](https://app.terraform.io/)  
+
+![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/bucket.png)
+
 3. Создайте VPC с подсетями в разных зонах доступности.
+
+![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/subnet.png)
+
 4. Убедитесь, что теперь вы можете выполнить команды `terraform destroy` и `terraform apply` без дополнительных ручных действий.
+
+```
+
+```
+
 5. В случае использования [Terraform Cloud](https://app.terraform.io/) в качестве [backend](https://www.terraform.io/docs/language/settings/backends/index.html) убедитесь, что применение изменений успешно проходит, используя web-интерфейс Terraform cloud.
 
 Ожидаемые результаты:
@@ -70,6 +84,133 @@
 1. Работоспособный Kubernetes кластер.
 2. В файле `~/.kube/config` находятся данные для доступа к кластеру.
 3. Команда `kubectl get pods --all-namespaces` отрабатывает без ошибок.
+
+Создал Kubernetes кластер на базе предварительно созданной инфраструктуры. Обеспечил доступ к ресурсам из Интернета.
+
+Для выполнения данного задания использовал Kubespray
+
+```
+root@baranovsa:/home/baranovsa/kubespray# ansible-playbook -i inventory/mycluster/hosts.yaml cluster.yml -b
+
+PLAY [Check Ansible version] **********************************************************************************************
+
+TASK [Check 2.15.4 <= Ansible version < 2.17.0] ***************************************************************************
+ok: [node-0] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Check that python netaddr is installed] *****************************************************************************
+ok: [node-0] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [Check that jinja is not too old (install via pip)] ******************************************************************
+ok: [node-0] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+[WARNING]: Could not match supplied host pattern, ignoring: kube-master
+
+PLAY [Add kube-master nodes to kube_control_plane] ************************************************************************
+skipping: no hosts matched
+[WARNING]: Could not match supplied host pattern, ignoring: kube-node
+
+PLAY [Add kube-node nodes to kube_node] ***********************************************************************************
+skipping: no hosts matched
+[WARNING]: Could not match supplied host pattern, ignoring: k8s-cluster
+
+PLAY [Add k8s-cluster nodes to k8s_cluster] *******************************************************************************
+skipping: no hosts matched
+[WARNING]: Could not match supplied host pattern, ignoring: calico-rr
+
+PLAY [Add calico-rr nodes to calico_rr] ***********************************************************************************
+skipping: no hosts matched
+[WARNING]: Could not match supplied host pattern, ignoring: no-floating
+
+PLAY [Add no-floating nodes to no_floating] *******************************************************************************
+skipping: no hosts matched
+[WARNING]: Could not match supplied host pattern, ignoring: bastion
+
+PLAY [Install bastion ssh config] *****************************************************************************************
+skipping: no hosts matched
+
+PLAY [Bootstrap hosts for Ansible] ****************************************************************************************
+[WARNING]: raw module does not support the environment keyword
+[WARNING]: raw module does not support the environment keyword
+[WARNING]: raw module does not support the environment keyword
+
+TASK [bootstrap-os : Fetch /etc/os-release] *******************************************************************************
+ok: [node-0]
+ok: [node-2]
+ok: [node-1]
+
+TASK [bootstrap-os : Create remote_tmp for it is used by another module] **************************************************
+ok: [node-0]
+ok: [node-2]
+ok: [node-1]
+
+TASK [bootstrap-os : Gather facts] ****************************************************************************************
+ok: [node-2]
+ok: [node-1]
+ok: [node-0]
+
+TASK [bootstrap-os : Assign inventory name to unconfigured hostnames (non-CoreOS, non-Flatcar, Suse and ClearLinux, non-Fedora)] ***
+ok: [node-2]
+ok: [node-1]
+ok: [node-0]
+
+TASK [bootstrap-os : Ensure bash_completion.d folder exists] **************************************************************
+ok: [node-0]
+ok: [node-2]
+ok: [node-1]
+
+PLAY [Gather facts] ***********************************************************************************************
+TASK [network_plugin/calico : Check vars defined correctly] ***************************************************************
+ok: [node-0] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [network_plugin/calico : Check calico network backend defined correctly] *********************************************
+ok: [node-0] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [network_plugin/calico : Check ipip and vxlan mode defined correctly] ************************************************
+ok: [node-0] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [network_plugin/calico : Check ipip and vxlan mode if simultaneously enabled] ****************************************
+ok: [node-0] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+TASK [network_plugin/calico : Get Calico default-pool configuration] ******************************************************
+ok: [node-0]
+
+TASK [network_plugin/calico : Set calico_pool_conf] ***********************************************************************
+ok: [node-0]
+
+TASK [network_plugin/calico : Check if inventory match current cluster configuration] *************************************
+ok: [node-0] => {
+    "changed": false,
+    "msg": "All assertions passed"
+}
+
+PLAY RECAP ****************************************************************************************************************
+node-0                     : ok=655  changed=24   unreachable=0    failed=0    skipped=1142 rescued=0    ignored=1   
+node-1                     : ok=449  changed=10   unreachable=0    failed=0    skipped=705  rescued=0    ignored=1   
+node-2                     : ok=449  changed=10   unreachable=0    failed=0    skipped=701  rescued=0    ignored=1   
+
+root@baranovsa:/home/baranovsa/kubespray# 
+```
+
 
 ---
 ### Создание тестового приложения

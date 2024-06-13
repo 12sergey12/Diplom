@@ -441,10 +441,13 @@ root@node-0:/home/ubuntu#
 
 3. Дашборды в grafana отображающие состояние Kubernetes кластера.
 
+![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/grafana.png)
 
+![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/prometheus.png)
 
 4. Http доступ к тестовому приложению.
 
+![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/idevops.png)
 
 
 ---
@@ -459,12 +462,125 @@ root@node-0:/home/ubuntu#
 
 Можно использовать [teamcity](https://www.jetbrains.com/ru-ru/teamcity/), [jenkins](https://www.jenkins.io/), [GitLab CI](https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/) или GitHub Actions.
 
+Для автоматической сборки docker image и деплоя приложения при изменении кода буду использовать Github actions
+
+Для работы ci-cd в github action требуются некоторые учетные данные.
+
+Поэтому создаем в Dockerhub секретный токен.
+
+Затем создаем в github секреты для доступа к DockerHub.
+
+
+
 Ожидаемый результат:
 
 1. Интерфейс ci/cd сервиса доступен по http.
+
+![monitoring]()
+
 2. При любом коммите в репозиторие с тестовым приложением происходит сборка и отправка в регистр Docker образа.
+
+```
+
+```
+
+```
+
+```
+
 3. При создании тега (например, v1.0.0) происходит сборка и отправка с соответствующим label в регистри, а также деплой соответствующего Docker образа в кластер Kubernetes.
 
+![monitoring]()
+
+```
+root@node-0:/home/ubuntu/myapp# kubectl get pods -n monitoring
+NAME                                                     READY   STATUS        RESTARTS   AGE
+alertmanager-stable-kube-prometheus-sta-alertmanager-0   2/2     Running       0          11h
+myapp-58b58b8d9b-829qc                                   1/1     Terminating   0          84s
+myapp-687d8f59f4-zzpfb                                   1/1     Running       0          5s
+prometheus-stable-kube-prometheus-sta-prometheus-0       2/2     Running       0          11h
+stable-grafana-785b7999d-spl28                           3/3     Running       0          11h
+stable-kube-prometheus-sta-operator-f844d969f-gqkmh      1/1     Running       0          11h
+stable-kube-state-metrics-5477f4cb54-mnq5j               1/1     Running       0          11h
+stable-prometheus-node-exporter-65kbk                    1/1     Running       0          11h
+stable-prometheus-node-exporter-fqrzs                    1/1     Running       0          11h
+stable-prometheus-node-exporter-jvbwv                    1/1     Running       0          11h
+root@node-0:/home/ubuntu/myapp# kubectl get pods -n monitoring
+NAME                                                     READY   STATUS    RESTARTS   AGE
+alertmanager-stable-kube-prometheus-sta-alertmanager-0   2/2     Running   0          11h
+myapp-687d8f59f4-zzpfb                                   1/1     Running   0          7s
+prometheus-stable-kube-prometheus-sta-prometheus-0       2/2     Running   0          11h
+stable-grafana-785b7999d-spl28                           3/3     Running   0          11h
+stable-kube-prometheus-sta-operator-f844d969f-gqkmh      1/1     Running   0          11h
+stable-kube-state-metrics-5477f4cb54-mnq5j               1/1     Running   0          11h
+stable-prometheus-node-exporter-65kbk                    1/1     Running   0          11h
+stable-prometheus-node-exporter-fqrzs                    1/1     Running   0          11h
+stable-prometheus-node-exporter-jvbwv                    1/1     Running   0          11h
+root@node-0:/home/ubuntu/myapp#
+
+root@node-0:/home/ubuntu/myapp# kubectl describe pod myapp-687d8f59f4-zzpfb -n monitoring
+Name:             myapp-687d8f59f4-zzpfb
+Namespace:        monitoring
+Priority:         0
+Service Account:  default
+Node:             node-1/10.10.2.30
+Start Time:       Thu, 13 Jun 2024 05:25:35 +0000
+Labels:           app=myapp
+                  pod-template-hash=687d8f59f4
+Annotations:      cni.projectcalico.org/containerID: 704542417f0ef01744027cef7310141f6f1bd8dcf0f42da0bd87b9e4afa2bd49
+                  cni.projectcalico.org/podIP: 10.233.70.90/32
+                  cni.projectcalico.org/podIPs: 10.233.70.90/32
+Status:           Running
+IP:               10.233.70.90
+IPs:
+  IP:           10.233.70.90
+Controlled By:  ReplicaSet/myapp-687d8f59f4
+Containers:
+  myapp:
+    Container ID:   containerd://6a5c326ef8656b12aaa5b5fb545c1ed4509207a2a76aa3034ac9972fe65f2452
+    Image:          12sergey12/myapp:v0.0.7
+    Image ID:       docker.io/12sergey12/myapp@sha256:9bcccf095f73998ef2100975b8136c6cbbf26e8d0469321b496be8eb720fb518
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Thu, 13 Jun 2024 05:25:39 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-sqtnz (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-sqtnz:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  76s   default-scheduler  Successfully assigned monitoring/myapp-687d8f59f4-zzpfb to node-1
+  Normal  Pulling    76s   kubelet            Pulling image "12sergey12/myapp:v0.0.7"
+  Normal  Pulled     72s   kubelet            Successfully pulled image "12sergey12/myapp:v0.0.7" in 3.736s (3.736s including waiting)
+  Normal  Created    72s   kubelet            Created container myapp
+  Normal  Started    72s   kubelet            Started container myapp
+root@node-0:/home/ubuntu/myapp# 
+
+
+
+
+```
 ---
 ## Что необходимо для сдачи задания?
 

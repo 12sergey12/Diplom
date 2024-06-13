@@ -1,4 +1,4 @@
-### Дипломный практикум в Yandex.Cloud Баранов Сергей
+### Дипломный практикум в Yandex.Cloud DevOps ingener Баранов Сергей
   * [Цели:](#цели)
   * [Этапы выполнения:](#этапы-выполнения)
      * [Создание облачной инфраструктуры](#создание-облачной-инфраструктуры)
@@ -45,15 +45,52 @@
    а. Рекомендуемый вариант: S3 bucket в созданном ЯО аккаунте(создание бакета через TF)
    б. Альтернативный вариант:  [Terraform Cloud](https://app.terraform.io/)  
 
+Подготовил backend для Terraform
+
 ![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/bucket.png)
 
 3. Создайте VPC с подсетями в разных зонах доступности.
+
+Создал VPC с подсетями в разных зонах доступности.
 
 ![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/subnet.png)
 
 4. Убедитесь, что теперь вы можете выполнить команды `terraform destroy` и `terraform apply` без дополнительных ручных действий.
 
+Убедился, что теперь могу выполнить команды terraform destroy и terraform apply без дополнительных ручных действий 
+(Повторный прогон команды terraform apply)
+
 ```
+root@baranovsa:/home/baranovsa/DIPLOM/terraform_2/terraform# terraform apply -auto-approve
+Acquiring state lock. This may take a few moments...
+yandex_vpc_network.subnet-zones: Refreshing state... [id=enpg53nl6v76ltkvkv4m]
+yandex_vpc_subnet.subnet-zones[1]: Refreshing state... [id=e2lceqqtsp4lnp8u9cf8]
+yandex_vpc_subnet.subnet-zones[0]: Refreshing state... [id=e9bp94ik7r7qithhojn2]
+yandex_vpc_subnet.subnet-zones[2]: Refreshing state... [id=fl8jm0lhaecln330bior]
+yandex_compute_instance.vm[1]: Refreshing state... [id=epdqm4dmhs61ifpsgpl8]
+yandex_compute_instance.vm[2]: Refreshing state... [id=fv4ev8ul1q4jnrdb4nf4]
+yandex_compute_instance.vm[0]: Refreshing state... [id=fhmq4g7q9stqpv55jftb]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your configuration and found no
+differences, so no changes are needed.
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+external_ip_address_nodes = {
+  "node-0" = "158.160.111.242"
+  "node-1" = "158.160.73.73"
+  "node-2" = "158.160.145.55"
+}
+internal_ip_address_nodes = {
+  "node-0" = "10.10.1.5"
+  "node-1" = "10.10.2.30"
+  "node-2" = "10.10.4.28"
+}
+root@baranovsa:/home/baranovsa/DIPLOM/terraform_2/terraform# 
 
 ```
 
@@ -88,6 +125,8 @@
 Создал Kubernetes кластер на базе предварительно созданной инфраструктуры. Обеспечил доступ к ресурсам из Интернета.
 
 Для выполнения данного задания использовал Kubespray
+
+Работоспособный Kubernetes кластер.
 
 ```
 root@baranovsa:/home/baranovsa/kubespray# ansible-playbook -i inventory/mycluster/hosts.yaml cluster.yml -b
@@ -213,6 +252,8 @@ root@baranovsa:/home/baranovsa/kubespray#
 
 Файл inventory для ansible playbook [hosts.yaml](https://github.com/12sergey12/Diplom/blob/main/Kuberspray/inventory/mycluster/hosts.yaml)
 
+Kubernetes кластер
+
 ```
 root@node-0:/home/ubuntu# kubectl get nodes
 NAME     STATUS   ROLES           AGE   VERSION
@@ -296,7 +337,9 @@ root@node-0:/home/ubuntu/myapp#
 
 1. [Git репозиторий](https://github.com/12sergey12/myapp) с тестовым приложением и [Dockerfile](https://github.com/12sergey12/myapp/blob/main/Dockerfile).
 
-2. Регистри с собранным docker image. В качестве регистри может быть [DockerHub](https://hub.docker.com/layers/12sergey12/myapp/0.0.1/images/sha256-1b56d3e635fdee5beb3e8d16edac61d0ef3cb009f722357618b7c755048d53b8?context=repo) или [Yandex Container Registry](https://cloud.yandex.ru/services/container-registry), созданный также с помощью terraform.
+2. Регистри с собранным docker image. В качестве регистри может быть
+
+ [DockerHub](https://hub.docker.com/layers/12sergey12/myapp/0.0.1/images/sha256-1b56d3e635fdee5beb3e8d16edac61d0ef3cb009f722357618b7c755048d53b8?context=repo) или [Yandex Container Registry](https://cloud.yandex.ru/services/container-registry), созданный также с помощью terraform.
 
 В целях проверки работоспособности соберем образ:
 
@@ -328,7 +371,7 @@ REPOSITORY         TAG       IMAGE ID       CREATED       SIZE
 12sergey12/myapp   0.0.3     d6ad24ec1b14   4 hours ago   142MB
 root@baranovsa:/home/baranovsa/myapp# 
 ```
-
+![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/idevops.png)
 
 ---
 
@@ -350,7 +393,10 @@ root@baranovsa:/home/baranovsa/myapp#
 Ожидаемый результат:
 1. Git репозиторий с конфигурационными файлами для настройки Kubernetes.
 
-[Kubespray](https://github.com/kubernetes-sigs/kubespray)
+
+Кластер prometheus, grafana, alertmanager, экспортер основных метрик Kubernetes задеплоил с помощью helm charts
+
+Подготовка cистемы мониторинга
 
 ```
 root@node-0:/home/ubuntu# curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
@@ -421,6 +467,8 @@ root@node-0:/home/ubuntu#
 ```
 2. Http доступ к web интерфейсу grafana.
 
+Чтобы подключаться к серверу извне перенастроим сервисы(svc) созданные для kube-prometheus-stack.
+
 ```
 root@node-0:/home/ubuntu# kubectl edit svc stable-kube-prometheus-sta-prometheus -n monitoring
 service/stable-kube-prometheus-sta-prometheus edited
@@ -450,6 +498,18 @@ root@node-0:/home/ubuntu#
 
 ![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/idevops.png)
 
+```
+root@node-0:/home/ubuntu/myapp# kubectl get pods,svc,deployment  -n monitoring
+NAME                                 READY   STATUS    RESTARTS   AGE
+pod/myapp-687d8f59f4-zzpfb           1/1     Running   0          51m
+
+NAME                               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                         AGE
+service/myapp-service              dePort     10.233.52.164    <none>        80:30080/TCP                    10h
+
+NAME                                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/myapp                                 1/1     1            1           53m
+root@node-0:/home/ubuntu/myapp#
+```
 
 ---
 ### Установка и настройка CI/CD
@@ -465,11 +525,17 @@ root@node-0:/home/ubuntu#
 
 Для автоматической сборки docker image и деплоя приложения при изменении кода буду использовать Github actions
 
-Для работы ci-cd в github action требуются некоторые учетные данные.
+Для работы ci-cd в github action требуются учетные данные.
 
 Поэтому создаем в Dockerhub секретный токен.
 
 Затем создаем в github секреты для доступа к DockerHub.
+
+KUBE_CONFIG_DATA
+
+DOCKERHUB_TOKEN
+
+DOCKERHUB_USERNAME
 
 
 
@@ -677,9 +743,6 @@ Events:
   Normal  Created    72s   kubelet            Created container myapp
   Normal  Started    72s   kubelet            Started container myapp
 root@node-0:/home/ubuntu/myapp# 
-
-
-
 
 ```
 ---

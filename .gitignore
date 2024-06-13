@@ -1,0 +1,21 @@
+# Local .terraform directories and files
+**/.terraform/*
+.terraform*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# own secret vars store.
+*.auto.tfvars
+
+meta.*
+*key*
+credentials*
+*.env
+
+terraform_2
+
+*/kubespray/*
+*k8s-cluster.tf_back*
+*cluster.tf_*

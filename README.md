@@ -211,6 +211,73 @@ node-2                     : ok=449  changed=10   unreachable=0    failed=0    s
 root@baranovsa:/home/baranovsa/kubespray# 
 ```
 
+Файл inventory для ansible playbook [hosts.yaml](https://github.com/12sergey12/Diplom/blob/main/Kuberspray/inventory/mycluster/hosts.yaml)
+
+```
+root@node-0:/home/ubuntu# kubectl get nodes
+NAME     STATUS   ROLES           AGE   VERSION
+node-0   Ready    control-plane   21m   v1.29.5
+node-1   Ready    <none>          20m   v1.29.5
+node-2   Ready    <none>          20m   v1.29.5
+root@node-0:/home/ubuntu# kubectl get pods --all-namespaces
+NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE
+kube-system   calico-kube-controllers-68485cbf9c-vxx9l   1/1     Running   0          19m
+kube-system   calico-node-8nzqm                          1/1     Running   0          20m
+kube-system   calico-node-kzdq5                          1/1     Running   0          20m
+kube-system   calico-node-wbxw2                          1/1     Running   0          20m
+kube-system   coredns-69db55dd76-clths                   1/1     Running   0          18m
+kube-system   coredns-69db55dd76-tvkh2                   1/1     Running   0          18m
+kube-system   dns-autoscaler-6f4b597d8c-jj2vz            1/1     Running   0          18m
+kube-system   kube-apiserver-node-0                      1/1     Running   2          21m
+kube-system   kube-controller-manager-node-0             1/1     Running   2          21m
+kube-system   kube-proxy-m28z6                           1/1     Running   0          5m3s
+kube-system   kube-proxy-rslls                           1/1     Running   0          5m3s
+kube-system   kube-proxy-xpck8                           1/1     Running   0          5m3s
+kube-system   kube-scheduler-node-0                      1/1     Running   1          21m
+kube-system   nginx-proxy-node-1                         1/1     Running   0          21m
+kube-system   nginx-proxy-node-2                         1/1     Running   0          21m
+kube-system   nodelocaldns-7g58k                         1/1     Running   0          18m
+kube-system   nodelocaldns-cszrn                         1/1     Running   0          18m
+kube-system   nodelocaldns-kqkgb                         1/1     Running   0          18m
+root@node-0:/home/ubuntu#
+```
+
+Генерация сертификата:
+```
+root@node-0:/home/ubuntu/myapp# rm /etc/kubernetes/pki/apiserver.* -f
+root@node-0:/home/ubuntu/myapp# kubeadm init phase certs apiserver --apiserver-cert-extra-sans 10.233.0.1,10.10.1.5 --apiserver-cert-extra-sans 158.160.111.242 --apiserver-cert-extra-sans localhost
+I0612 19:56:28.277268 1731388 version.go:256] remote version is much newer: v1.30.2; falling back to: stable-1.29
+[certs] Generating "apiserver" certificate and key
+[certs] apiserver serving cert is signed for DNS names [kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local localhost node-0] and IPs [10.96.0.1 10.10.1.5 10.233.0.1 158.160.111.242]
+root@node-0:/home/ubuntu/myapp#
+```
+
+файл `~/.kube/config` выглядит так:
+
+```
+root@node-0:/home/ubuntu/myapp# kubectl config view
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://158.160.111.242:6443
+  name: cluster.local
+contexts:
+- context:
+    cluster: cluster.local
+    user: kubernetes-admin
+  name: kubernetes-admin@cluster.local
+current-context: kubernetes-admin@cluster.local
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: DATA+OMITTED
+    client-key-data: DATA+OMITTED
+root@node-0:/home/ubuntu/myapp# 
+
+```
 
 ---
 ### Создание тестового приложения
@@ -227,8 +294,42 @@ root@baranovsa:/home/baranovsa/kubespray#
 
 Ожидаемый результат:
 
-1. Git репозиторий с тестовым приложением и Dockerfile.
-2. Регистри с собранным docker image. В качестве регистри может быть DockerHub или [Yandex Container Registry](https://cloud.yandex.ru/services/container-registry), созданный также с помощью terraform.
+1. [Git репозиторий](https://github.com/12sergey12/myapp) с тестовым приложением и [Dockerfile](https://github.com/12sergey12/myapp/blob/main/Dockerfile).
+
+2. Регистри с собранным docker image. В качестве регистри может быть [DockerHub](https://hub.docker.com/layers/12sergey12/myapp/0.0.1/images/sha256-1b56d3e635fdee5beb3e8d16edac61d0ef3cb009f722357618b7c755048d53b8?context=repo) или [Yandex Container Registry](https://cloud.yandex.ru/services/container-registry), созданный также с помощью terraform.
+
+В целях проверки работоспособности соберем образ:
+
+```
+root@baranovsa:/home/baranovsa/myapp# docker build --build-arg VEESION=v0.0.3 -t 12sergey12/myapp:0.0.3 .
+[+] Building 3.9s (9/9) FINISHED                                                      docker:default
+ => [internal] load build definition from Dockerfile                                            0.0s
+ => => transferring dockerfile: 281B                                                            0.0s
+ => [internal] load metadata for docker.io/library/nginx:1.23.3                                 0.7s
+ => [internal] load .dockerignore                                                               0.0s
+ => => transferring context: 2B                                                                 0.0s
+ => [1/4] FROM docker.io/library/nginx:1.23.3@sha256:f4e3b6489888647ce1834b601c6c06b9f8c03dee6  0.0s
+ => [internal] load build context                                                               0.0s
+ => => transferring context: 126B                                                               0.0s
+ => CACHED [2/4] ADD conf /etc/nginx                                                            0.0s
+ => CACHED [3/4] ADD content /usr/share/nginx/html                                              0.0s
+ => [4/4] RUN sed -i 's/{{VERSION}}/'"0.0.3"'/g' /usr/share/nginx/html/index.html               2.2s
+ => exporting to image                                                                          0.5s
+ => => exporting layers                                                                         0.4s
+ => => writing image sha256:d6ad24ec1b148f79a3836d9370d37b2c0a7062b8294190be79b18cb407c47792    0.1s
+ => => naming to docker.io/12sergey12/myapp:0.0.3                                               0.0s
+root@baranovsa:/home/baranovsa/myapp#
+```
+Образ собран и присутствует в репозитории под тегом 12sergey12/myapp:0.0.3:
+
+```
+root@baranovsa:/home/baranovsa/myapp# docker images
+REPOSITORY         TAG       IMAGE ID       CREATED       SIZE
+12sergey12/myapp   0.0.3     d6ad24ec1b14   4 hours ago   142MB
+root@baranovsa:/home/baranovsa/myapp# 
+```
+
+![monitoring]()
 
 ---
 ### Подготовка cистемы мониторинга и деплой приложения
@@ -247,9 +348,104 @@ root@baranovsa:/home/baranovsa/kubespray#
 
 Ожидаемый результат:
 1. Git репозиторий с конфигурационными файлами для настройки Kubernetes.
+
+[Kubespray](https://github.com/kubernetes-sigs/kubespray)
+
+```
+root@node-0:/home/ubuntu# curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+root@node-0:/home/ubuntu# chmod 700 get_helm.sh
+root@node-0:/home/ubuntu# ./get_helm.sh
+[WARNING] Could not find git. It is required for plugin installation.
+Downloading https://get.helm.sh/helm-v3.15.2-linux-amd64.tar.gz
+Verifying checksum... Done.
+Preparing to install helm into /usr/local/bin
+helm installed into /usr/local/bin/helm
+root@node-0:/home/ubuntu# 
+root@node-0:/home/ubuntu# kubectl create namespace monitoring
+namespace/monitoring created
+root@node-0:/home/ubuntu# sudo helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+"prometheus-community" has been added to your repositories
+root@node-0:/home/ubuntu# sudo helm install stable prometheus-community/kube-prometheus-stack --namespace=monitoring
+NAME: stable
+LAST DEPLOYED: Wed Jun 12 18:09:41 2024
+NAMESPACE: monitoring
+STATUS: deployed
+REVISION: 1
+NOTES:
+kube-prometheus-stack has been installed. Check its status by running:
+  kubectl --namespace monitoring get pods -l "release=stable"
+
+Visit https://github.com/prometheus-operator/kube-prometheus for instructions on how to create & configure Alertmanager and Prometheus instances using the Operator.
+root@node-0:/home/ubuntu#
+```
+```
+root@node-0:/home/ubuntu# kubectl get all -n monitoring
+NAME                                                         READY   STATUS    RESTARTS   AGE
+pod/alertmanager-stable-kube-prometheus-sta-alertmanager-0   2/2     Running   0          37s
+pod/prometheus-stable-kube-prometheus-sta-prometheus-0       2/2     Running   0          37s
+pod/stable-grafana-785b7999d-spl28                           3/3     Running   0          52s
+pod/stable-kube-prometheus-sta-operator-f844d969f-gqkmh      1/1     Running   0          52s
+pod/stable-kube-state-metrics-5477f4cb54-mnq5j               1/1     Running   0          52s
+pod/stable-prometheus-node-exporter-65kbk                    1/1     Running   0          52s
+pod/stable-prometheus-node-exporter-fqrzs                    1/1     Running   0          52s
+pod/stable-prometheus-node-exporter-jvbwv                    1/1     Running   0          52s
+
+NAME                                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
+service/alertmanager-operated                     ClusterIP   None            <none>        9093/TCP,9094/TCP,9094/UDP   37s
+service/prometheus-operated                       ClusterIP   None            <none>        9090/TCP                     37s
+service/stable-grafana                            ClusterIP   10.233.16.168   <none>        80/TCP                       52s
+service/stable-kube-prometheus-sta-alertmanager   ClusterIP   10.233.13.148   <none>        9093/TCP,8080/TCP            52s
+service/stable-kube-prometheus-sta-operator       ClusterIP   10.233.49.191   <none>        443/TCP                      52s
+service/stable-kube-prometheus-sta-prometheus     ClusterIP   10.233.37.107   <none>        9090/TCP,8080/TCP            52s
+service/stable-kube-state-metrics                 ClusterIP   10.233.55.210   <none>        8080/TCP                     52s
+service/stable-prometheus-node-exporter           ClusterIP   10.233.13.252   <none>        9100/TCP                     52s
+
+NAME                                             DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+daemonset.apps/stable-prometheus-node-exporter   3         3         3       3            3           kubernetes.io/os=linux   52s
+
+NAME                                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/stable-grafana                        1/1     1            1           52s
+deployment.apps/stable-kube-prometheus-sta-operator   1/1     1            1           52s
+deployment.apps/stable-kube-state-metrics             1/1     1            1           52s
+
+NAME                                                            DESIRED   CURRENT   READY   AGE
+replicaset.apps/stable-grafana-785b7999d                        1         1         1       52s
+replicaset.apps/stable-kube-prometheus-sta-operator-f844d969f   1         1         1       52s
+replicaset.apps/stable-kube-state-metrics-5477f4cb54            1         1         1       52s
+
+NAME                                                                    READY   AGE
+statefulset.apps/alertmanager-stable-kube-prometheus-sta-alertmanager   1/1     37s
+statefulset.apps/prometheus-stable-kube-prometheus-sta-prometheus       1/1     37s
+root@node-0:/home/ubuntu#
+```
 2. Http доступ к web интерфейсу grafana.
+
+```
+root@node-0:/home/ubuntu# kubectl edit svc stable-kube-prometheus-sta-prometheus -n monitoring
+service/stable-kube-prometheus-sta-prometheus edited
+root@node-0:/home/ubuntu# kubectl edit svc stable-grafana -n monitoring
+service/stable-grafana edited
+
+root@node-0:/home/ubuntu# kubectl get svc -n monitoring
+NAME                                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                         AGE
+alertmanager-operated                     ClusterIP   None            <none>        9093/TCP,9094/TCP,9094/UDP      42m
+prometheus-operated                       ClusterIP   None            <none>        9090/TCP                        42m
+stable-grafana                            NodePort    10.233.16.168   <none>        80:32680/TCP                    42m
+stable-kube-prometheus-sta-alertmanager   ClusterIP   10.233.13.148   <none>        9093/TCP,8080/TCP               42m
+stable-kube-prometheus-sta-operator       ClusterIP   10.233.49.191   <none>        443/TCP                         42m
+stable-kube-prometheus-sta-prometheus     NodePort    10.233.37.107   <none>        9090:30643/TCP,8080:30217/TCP   42m
+stable-kube-state-metrics                 ClusterIP   10.233.55.210   <none>        8080/TCP                        42m
+stable-prometheus-node-exporter           ClusterIP   10.233.13.252   <none>        9100/TCP                        42m
+root@node-0:/home/ubuntu#
+```
+
 3. Дашборды в grafana отображающие состояние Kubernetes кластера.
+
+
+
 4. Http доступ к тестовому приложению.
+
+
 
 ---
 ### Установка и настройка CI/CD

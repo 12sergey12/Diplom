@@ -124,7 +124,15 @@ root@baranovsa:/home/baranovsa/DIPLOM/terraform_2/terraform#
 
 Создал Kubernetes кластер на базе предварительно созданной инфраструктуры. Обеспечил доступ к ресурсам из Интернета.
 
+
 Для выполнения данного задания использовал Kubespray
+
+Склонируем репозиторий:
+
+git clone https://github.com/kubernetes-sigs/kubespray.git
+
+При создании инфраструктуры мы создали [hosts.yaml](https://github.com/12sergey12/Diplom/blob/main/Kuberspray/inventory/mycluster/hosts.yaml)
+
 
 Работоспособный Kubernetes кластер.
 

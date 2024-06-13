@@ -1,4 +1,4 @@
-# Дипломный практикум в Yandex.Cloud Баранов Сергей
+### Дипломный практикум в Yandex.Cloud Баранов Сергей
   * [Цели:](#цели)
   * [Этапы выполнения:](#этапы-выполнения)
      * [Создание облачной инфраструктуры](#создание-облачной-инфраструктуры)
@@ -12,7 +12,7 @@
 **Перед началом работы над дипломным заданием изучите [Инструкция по экономии облачных ресурсов](https://github.com/netology-code/devops-materials/blob/master/cloudwork.MD).**
 
 ---
-## Цели:
+### Цели:
 
 1. Подготовить облачную инфраструктуру на базе облачного провайдера Яндекс.Облако.
 2. Запустить и сконфигурировать Kubernetes кластер.
@@ -22,7 +22,7 @@
 6. Настроить CD для автоматического развёртывания приложения.
 
 ---
-## Этапы выполнения:
+### Этапы выполнения:
 
 
 ### Создание облачной инфраструктуры
@@ -329,9 +329,10 @@ REPOSITORY         TAG       IMAGE ID       CREATED       SIZE
 root@baranovsa:/home/baranovsa/myapp# 
 ```
 
-![monitoring]()
 
 ---
+
+
 ### Подготовка cистемы мониторинга и деплой приложения
 
 Уже должны быть готовы конфигурации для автоматического создания облачной инфраструктуры и поднятия Kubernetes кластера.  
@@ -476,7 +477,7 @@ root@node-0:/home/ubuntu#
 
 1. Интерфейс ci/cd сервиса доступен по http.
 
-![monitoring]()
+![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/github_action.png)
 
 2. При любом коммите в репозиторие с тестовым приложением происходит сборка и отправка в регистр Docker образа.
 
@@ -490,7 +491,9 @@ root@node-0:/home/ubuntu#
 
 3. При создании тега (например, v1.0.0) происходит сборка и отправка с соответствующим label в регистри, а также деплой соответствующего Docker образа в кластер Kubernetes.
 
-![monitoring]()
+![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/ci_cd.png)
+
+![monitoring](https://github.com/12sergey12/Diplom/blob/main/images/dockerhub(1).png)
 
 ```
 root@node-0:/home/ubuntu/myapp# kubectl get pods -n monitoring

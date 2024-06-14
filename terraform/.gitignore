@@ -3,7 +3,7 @@
 *.terraform.*
 
 # .tfstate files
-terraform.tfstate
+*terraform.tfstate
 *.tfstate
 *.tfvars
 *.tfvars.json
@@ -18,12 +18,8 @@ terraform.rc
 *.auto.tfvars
 
 # Ignored Terraform files
-.gitignore
+*.gitignore
 
-*meta.*
-*key*
-*credentials*
-*.env
 *.terraform.io*
 
 

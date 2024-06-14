@@ -3,13 +3,13 @@
 *.terraform.*
 
 # .tfstate files
-*terraform.tfstate
+terraform.tfstate
 *.tfstate
 *.tfvars
 *.tfvars.json
 
 # Ignore transient lock info files created by terraform apply
-*.terraform/providers/registry.terraform.io
+.terraform/*
 .terraform.tfstate.lock.info
 .terraformrc
 terraform.rc
@@ -18,7 +18,7 @@ terraform.rc
 *.auto.tfvars
 
 # Ignored Terraform files
-*gitignore*.tf
+.gitignore
 
 *meta.*
 *key*

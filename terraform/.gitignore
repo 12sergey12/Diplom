@@ -1,14 +1,15 @@
 # Local .terraform directories and files
-**/.terraform/*
+*/.terraform/*
 *.terraform.*
 
 # .tfstate files
-*.tfstate
+*terraform.tfstate
 *.tfstate.*
 *.tfvars
 *.tfvars.json
 
 # Ignore transient lock info files created by terraform apply
+*.terraform/providers/registry.terraform.io
 .terraform.tfstate.lock.info
 .terraformrc
 terraform.rc

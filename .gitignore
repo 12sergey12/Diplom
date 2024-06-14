@@ -1,17 +1,17 @@
 # Local .terraform directories and files
 **/.terraform/*
-.terraform*
-
+*.terraform.*
+*terraform.*
 # .tfstate files
-*.tfstate
+*.tfstate*
 *.tfstate.*
 
 # own secret vars store.
 *.auto.tfvars
 
-meta.*
+*meta.*
 *key*
-credentials*
+*credentials*
 *.env
 *.terraform.io*
 

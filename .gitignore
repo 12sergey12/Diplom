@@ -13,8 +13,8 @@ meta.*
 *key*
 credentials*
 *.env
+*.terraform.io*
 
-terraform_2
 
 */kubespray/*
 *k8s-cluster.tf_back*

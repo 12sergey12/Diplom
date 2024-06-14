@@ -17,6 +17,9 @@ terraform.rc
 # own secret vars store.
 *.auto.tfvars
 
+# Ignored Terraform files
+*gitignore*.tf
+
 *meta.*
 *key*
 *credentials*
